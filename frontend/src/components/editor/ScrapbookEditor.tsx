@@ -9,7 +9,7 @@ import ThumbnailStrip from './ThumbnailStrip';
 import ImageEditor from './ImageEditor';
 import PreviewMode from './PreviewMode';
 import { exportToJSON, exportToPDF } from '../../utils/exportUtils';
-import { Scrapbook, Page, LayoutType, ImageBlock } from '../app/editor/types';
+import { Scrapbook, Page, LayoutType, ImageBlock } from '../../app/editor/types';
 
 interface Photo {
   id: string;

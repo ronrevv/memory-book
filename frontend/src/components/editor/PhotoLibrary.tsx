@@ -19,7 +19,7 @@ const DraggablePhoto: React.FC<{ photo: Photo }> = ({ photo }) => {
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-  }));
+  }), [photo]);
 
   return (
     <div

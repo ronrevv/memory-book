@@ -28,7 +28,7 @@ const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, o
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
     }),
-  }));
+  }), [onDrop]);
 
   const isActive = isOver && canDrop;
 
