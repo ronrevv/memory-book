@@ -35,6 +35,13 @@ const DraggablePhoto: React.FC<{ photo: Photo }> = ({ photo }) => {
 
 const PhotoLibrary: React.FC<PhotoLibraryProps> = ({ photos, onUpload }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  
+  const filteredPhotos = photos.filter(p => 
+    p.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    // If we had categories or tags, we'd search those too
+    searchTerm === ''
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -63,6 +70,8 @@ const PhotoLibrary: React.FC<PhotoLibraryProps> = ({ photos, onUpload }) => {
             type="text" 
             placeholder="Search photos..." 
             className="w-full bg-gray-50 border border-gray-100 rounded-lg pl-9 pr-3 py-2 text-xs outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -78,14 +87,14 @@ const PhotoLibrary: React.FC<PhotoLibraryProps> = ({ photos, onUpload }) => {
         />
         <button 
           onClick={() => fileInputRef.current?.click()}
-          className="w-full aspect-[3/1] rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all gap-1 group"
+          className="w-full aspect-[3/1] rounded-xl border-2 border-dashed border-indigo-200 bg-indigo-50/10 flex flex-col items-center justify-center text-indigo-400 hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all gap-1 group"
         >
           <UploadCloud size={20} className="group-hover:scale-110 transition-transform" />
           <span className="text-[10px] font-bold uppercase tracking-tight">Upload Photos</span>
         </button>
 
         <div className="grid grid-cols-2 gap-3 pb-8">
-          {photos.map((photo: Photo) => (
+          {filteredPhotos.map((photo: Photo) => (
             <DraggablePhoto key={photo.id} photo={photo} />
           ))}
         </div>

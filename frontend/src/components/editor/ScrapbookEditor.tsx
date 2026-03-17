@@ -39,27 +39,28 @@ const ScrapbookEditor: React.FC = () => {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editingImage, setEditingImage] = useState<{ pageIndex: number; imageIndex: number } | null>(null);
   const [photos, setPhotos] = useState<Photo[]>(SAMPLE_PHOTOS);
+  const [isExporting, setIsExporting] = useState(false);
 
   const currentPage = scrapbook.pages[currentPageIndex];
 
   const updatePageLayout = (layout: LayoutType) => {
     const newPages = [...scrapbook.pages];
     let slotCount = 1;
-    if (layout === 'layout_two') slotCount = 2;
+    if (layout === 'layout_two' || layout === 'layout_collage') slotCount = 2;
     if (layout === 'layout_three') slotCount = 3;
     if (layout === 'layout_four') slotCount = 4;
-    
-    // Preserve existing images or pad with null
-    const existingImages = newPages[currentPageIndex].images.filter((img): img is ImageBlock => img !== null);
-    const newImages = [...existingImages.slice(0, slotCount)];
-    while (newImages.length < slotCount) {
-      newImages.push(null);
+    if (layout === 'layout_tilted' || layout === 'layout_caption') slotCount = 1;
+
+    // Pad image array if it's shorter than the new layout requires
+    const currentImages = [...newPages[currentPageIndex].images];
+    while (currentImages.length < slotCount) {
+      currentImages.push(null);
     }
 
     newPages[currentPageIndex] = {
       ...newPages[currentPageIndex],
       layout,
-      images: newImages,
+      images: currentImages,
     };
     setScrapbook({ ...scrapbook, pages: newPages });
   };
@@ -123,7 +124,18 @@ const ScrapbookEditor: React.FC = () => {
           title={scrapbook.title} 
           onPreview={() => setIsPreviewMode(true)}
           onExportJSON={() => exportToJSON(scrapbook)}
-          onExportPDF={() => exportToPDF(scrapbook)}
+          onExportPDF={async () => {
+             setIsExporting(true);
+             const originalIndex = currentPageIndex;
+             try {
+                await exportToPDF(scrapbook, async (index) => {
+                   setCurrentPageIndex(index);
+                });
+             } finally {
+                setCurrentPageIndex(originalIndex);
+                setIsExporting(false);
+             }
+          }}
         />
         
         <div className="flex flex-1 overflow-hidden">
@@ -169,6 +181,14 @@ const ScrapbookEditor: React.FC = () => {
           />
         </div>
       </div>
+
+      {isExporting && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex flex-col items-center justify-center text-white text-center">
+           <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4" />
+           <h2 className="text-2xl font-bold mb-2">Generating PDF...</h2>
+           <p className="text-white/60 text-sm">Capturing your beautiful memories, please wait.</p>
+        </div>
+      )}
 
       {editingImage && scrapbook.pages[editingImage.pageIndex].images[editingImage.imageIndex] && (
         <ImageEditor 
