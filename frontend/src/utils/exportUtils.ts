@@ -14,17 +14,19 @@ export const exportToJSON = (scrapbook: Scrapbook) => {
 
 export const exportToPDF = async (
   scrapbook: Scrapbook, 
-  onPageChange: (index: number) => Promise<void>
+  onPageChange?: (index: number) => Promise<void>
 ) => {
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
   for (let i = 0; i < scrapbook.pages.length; i++) {
-    // 1. Switch UI to that page and wait for rendering
-    await onPageChange(i);
-    // Wait a bit more for layout/image rendering stabilizer
-    await new Promise(resolve => setTimeout(resolve, 600));
+    // 1. Switch UI to that page if callback provided
+    if (onPageChange) {
+      await onPageChange(i);
+      // Wait for React state update and layout rendering stabilizer
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
 
     const element = document.getElementById('scrapbook-page-content');
     if (!element) {

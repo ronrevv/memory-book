@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DndProvider } from 'react-dnd';
+import { motion, AnimatePresence } from 'framer-motion';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import PhotoLibrary from './PhotoLibrary';
 import PageCanvas from './PageCanvas';
@@ -116,14 +117,7 @@ const ScrapbookEditor: React.FC = () => {
     setScrapbook({ ...scrapbook, pages: newPages });
   };
 
-  if (isPreviewMode) {
-    return (
-      <PreviewMode 
-        scrapbook={scrapbook} 
-        onClose={() => setIsPreviewMode(false)} 
-      />
-    );
-  }
+  // Removed early return to keep canvas mounted for background tasks (like export)
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -205,6 +199,30 @@ const ScrapbookEditor: React.FC = () => {
           onClose={() => setEditingImage(null)}
         />
       )}
+
+      {/* Preview Mode Overlay */}
+      <AnimatePresence>
+        {isPreviewMode && (
+          <PreviewMode 
+            scrapbook={scrapbook} 
+            onClose={() => setIsPreviewMode(false)} 
+            onExportPDF={async () => {
+              // Trigger the same export logic but without needing to switch the editor UI 
+              // (or we can switch it in the background)
+              setIsExporting(true);
+              try {
+                await exportToPDF(scrapbook, async (index) => {
+                  // If we want to sync the preview index during export, we could pass another callback
+                  // but sticking to editor state sync for now
+                  setCurrentPageIndex(index);
+                });
+              } finally {
+                setIsExporting(false);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
     </DndProvider>
   );
 };

@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Download, FileText } from 'lucide-react';
 import { Scrapbook, Page } from '../../app/editor/types';
+import PageCanvas from './PageCanvas';
 import { exportToPDF } from '../../utils/exportUtils';
 
 interface PreviewModeProps {
   scrapbook: Scrapbook;
   onClose: () => void;
+  onExportPDF: () => void;
 }
 
-const PreviewMode: React.FC<PreviewModeProps> = ({ scrapbook, onClose }) => {
+const PreviewMode: React.FC<PreviewModeProps> = ({ scrapbook, onClose, onExportPDF }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
 
@@ -50,7 +52,7 @@ const PreviewMode: React.FC<PreviewModeProps> = ({ scrapbook, onClose }) => {
         </div>
         <div className="flex items-center gap-4">
            <button 
-             onClick={() => exportToPDF(scrapbook)}
+             onClick={onExportPDF}
              className="px-4 h-12 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white flex items-center justify-center gap-2 backdrop-blur-xl transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
            >
              <FileText size={18} />
@@ -81,66 +83,14 @@ const PreviewMode: React.FC<PreviewModeProps> = ({ scrapbook, onClose }) => {
             }}
             className="w-[500px] aspect-[4/5] bg-white rounded-r-[3rem] rounded-l-md shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden relative origin-left"
           >
-            {/* Page Content Rendering */}
-            <div className="w-full h-full relative">
-               {(() => {
-                 switch (currentPage.layout) {
-                   case 'layout_hero':
-                     return (
-                       <div className="w-full h-full p-12">
-                         {currentPage.images[0] && <img src={currentPage.images[0].src} className="w-full h-full object-cover rounded-2xl shadow-xl" />}
-                       </div>
-                     );
-                   case 'layout_two':
-                     return (
-                       <div className="w-full h-full p-12 grid grid-cols-2 gap-6">
-                         {currentPage.images.map((img, i) => img && <img key={i} src={img.src} className="w-full h-full object-cover rounded-2xl shadow-lg" />)}
-                       </div>
-                     );
-                   case 'layout_three':
-                     return (
-                        <div className="w-full h-full p-12 grid grid-cols-2 grid-rows-2 gap-4">
-                          <div className="row-span-2">
-                             {currentPage.images[0] && <img src={currentPage.images[0].src} className="w-full h-full object-cover rounded-2xl shadow-lg" />}
-                          </div>
-                          {currentPage.images[1] && <img src={currentPage.images[1].src} className="w-full h-full object-cover rounded-2xl shadow-lg" />}
-                          {currentPage.images[2] && <img src={currentPage.images[2].src} className="w-full h-full object-cover rounded-2xl shadow-lg" />}
-                        </div>
-                     );
-                   case 'layout_four':
-                     return (
-                       <div className="w-full h-full p-12 grid grid-cols-2 grid-rows-2 gap-4">
-                         {currentPage.images.map((img, i) => img && <img key={i} src={img.src} className="w-full h-full object-cover rounded-2xl shadow-lg" />)}
-                       </div>
-                     );
-                   case 'layout_caption':
-                     return (
-                       <div className="w-full h-full p-12 flex flex-col gap-6">
-                         <div className="flex-1">
-                           {currentPage.images[0] && <img src={currentPage.images[0].src} className="w-full h-full object-cover rounded-2xl shadow-lg" />}
-                         </div>
-                         <p className="text-center font-serif italic text-gray-700 text-xl leading-relaxed">
-                            "{currentPage.images[0]?.caption || 'Your story here...'}"
-                         </p>
-                       </div>
-                     );
-                   case 'layout_tilted':
-                     return (
-                        <div className="w-full h-full p-16 flex items-center justify-center">
-                           {currentPage.images[0] && <img src={currentPage.images[0].src} className="w-full h-full object-cover rounded-2xl shadow-2xl rotate-[-3deg]" />}
-                        </div>
-                     );
-                   case 'layout_collage':
-                     return (
-                        <div className="w-full h-full p-12 relative">
-                           {currentPage.images[0] && <img src={currentPage.images[0].src} className="absolute top-12 left-12 w-[65%] h-[60%] object-cover rounded-2xl shadow-xl rotate-[-5deg]" />}
-                           {currentPage.images[1] && <img src={currentPage.images[1].src} className="absolute bottom-16 right-12 w-[60%] h-[55%] object-cover rounded-2xl shadow-2xl rotate-[5deg] border-8 border-white" />}
-                        </div>
-                     );
-                   default:
-                     return null;
-                 }
-               })()}
+            {/* Page Content Rendering - Unified with Editor Canvas */}
+            <div className="w-full h-full relative pointer-events-none scale-90">
+               <PageCanvas 
+                 page={currentPage}
+                 onUpdatePage={() => {}} // No-op in preview
+                 onEditImage={() => {}} // No-op in preview
+                 onUpdateCaption={() => {}} // No-op in preview
+               />
             </div>
             
             {/* Spine Effect */}
