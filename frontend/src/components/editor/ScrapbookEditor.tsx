@@ -45,11 +45,19 @@ const ScrapbookEditor: React.FC = () => {
 
   const updatePageLayout = (layout: LayoutType) => {
     const newPages = [...scrapbook.pages];
-    let slotCount = 1;
-    if (layout === 'layout_two' || layout === 'layout_collage') slotCount = 2;
-    if (layout === 'layout_three') slotCount = 3;
-    if (layout === 'layout_four') slotCount = 4;
-    if (layout === 'layout_tilted' || layout === 'layout_caption') slotCount = 1;
+    const layoutSlots: Record<LayoutType, number> = {
+      'layout_hero': 1,
+      'layout_two': 2,
+      'layout_three': 3,
+      'layout_four': 4,
+      'layout_five': 5,
+      'layout_six': 6,
+      'layout_magazine': 3,
+      'layout_caption': 1,
+      'layout_tilted': 1,
+      'layout_collage': 2
+    };
+    const slotCount = layoutSlots[layout] || 1;
 
     // Pad image array if it's shorter than the new layout requires
     const currentImages = [...newPages[currentPageIndex].images];

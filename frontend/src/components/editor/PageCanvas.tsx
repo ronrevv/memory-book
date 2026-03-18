@@ -35,9 +35,9 @@ const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, o
   return (
     <div
       ref={drop as any}
-      className={`relative group rounded-2xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-xl ${
-        isActive ? 'ring-4 ring-indigo-500 ring-inset scale-[0.99] bg-indigo-50/50' : 'ring-0'
-      } ${!content ? 'bg-gray-100/30 border-2 border-dashed border-gray-200 hover:border-indigo-300 hover:bg-white transition-colors' : 'bg-gray-200'}`}
+      className={`relative group rounded-2xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl ${
+        isActive ? 'ring-4 ring-indigo-500 ring-offset-4 scale-[1.02] z-30 bg-indigo-50/80 shadow-indigo-200/50' : 'ring-0'
+      } ${!content ? 'bg-gradient-to-br from-gray-50/50 to-gray-100/50 border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:scale-[1.01] transition-all cursor-pointer' : 'bg-gray-200'}`}
     >
       <div className={`absolute inset-0 bg-indigo-500/5 animate-pulse transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
       {content ? (
@@ -162,14 +162,53 @@ const PageCanvas: React.FC<PageCanvasProps> = ({ page, onUpdatePage, onEditImage
             </div>
           </div>
         );
+      case 'layout_five':
+        return (
+          <div className="w-full h-full p-8 md:p-10 grid grid-cols-4 grid-rows-2 gap-4">
+            <div className="col-span-2 row-span-2">
+              <DropZone index={0} content={page.images[0]} onDrop={(p) => handleDrop(0, p)} onRemove={() => handleRemove(0)} onEdit={() => onEditImage(0)} onUpdateCaption={(c) => onUpdateCaption(0, c)} />
+            </div>
+            <div className="col-span-2">
+              <DropZone index={1} content={page.images[1]} onDrop={(p) => handleDrop(1, p)} onRemove={() => handleRemove(1)} onEdit={() => onEditImage(1)} onUpdateCaption={(c) => onUpdateCaption(1, c)} />
+            </div>
+            <DropZone index={2} content={page.images[2]} onDrop={(p) => handleDrop(2, p)} onRemove={() => handleRemove(2)} onEdit={() => onEditImage(2)} onUpdateCaption={(c) => onUpdateCaption(2, c)} />
+            <DropZone index={3} content={page.images[3]} onDrop={(p) => handleDrop(3, p)} onRemove={() => handleRemove(3)} onEdit={() => onEditImage(3)} onUpdateCaption={(c) => onUpdateCaption(3, c)} />
+          </div>
+        );
+      case 'layout_six':
+        return (
+          <div className="w-full h-full p-8 grid grid-cols-2 grid-rows-3 gap-3">
+             {Array.from({ length: 6 }).map((_: any, i: number) => (
+                <DropZone key={i} index={i} content={page.images[i]} onDrop={(p) => handleDrop(i, p)} onRemove={() => handleRemove(i)} onEdit={() => onEditImage(i)} onUpdateCaption={(c) => onUpdateCaption(i, c)} />
+             ))}
+          </div>
+        );
+      case 'layout_magazine':
+        return (
+          <div className="w-full h-full p-8 grid grid-cols-3 gap-6">
+            <div className="col-span-2">
+               <DropZone index={0} content={page.images[0]} onDrop={(p) => handleDrop(0, p)} onRemove={() => handleRemove(0)} onEdit={() => onEditImage(0)} onUpdateCaption={(c) => onUpdateCaption(0, c)} />
+            </div>
+            <div className="flex flex-col gap-6">
+               <div className="flex-1">
+                 <DropZone index={1} content={page.images[1]} onDrop={(p) => handleDrop(1, p)} onRemove={() => handleRemove(1)} onEdit={() => onEditImage(1)} onUpdateCaption={(c) => onUpdateCaption(1, c)} />
+               </div>
+               <div className="flex-1">
+                 <DropZone index={2} content={page.images[2]} onDrop={(p) => handleDrop(2, p)} onRemove={() => handleRemove(2)} onEdit={() => onEditImage(2)} onUpdateCaption={(c) => onUpdateCaption(2, c)} />
+               </div>
+            </div>
+          </div>
+        );
       case 'layout_collage':
         return (
           <div className="w-full h-full p-8 relative">
-            <div className="absolute top-8 left-8 w-[60%] h-[60%] z-0 rotate-[-5deg] shadow-xl">
+            <div className="absolute top-8 left-8 w-[65%] h-[65%] z-0 rotate-[-4deg] shadow-2xl">
                <DropZone index={0} content={page.images[0]} onDrop={(p) => handleDrop(0, p)} onRemove={() => handleRemove(0)} onEdit={() => onEditImage(0)} onUpdateCaption={(c) => onUpdateCaption(0, c)} />
             </div>
-            <div className="absolute bottom-12 right-12 w-[55%] h-[55%] z-10 rotate-[5deg] shadow-2xl">
-               <DropZone index={1} content={page.images[1]} onDrop={(p) => handleDrop(1, p)} onRemove={() => handleRemove(1)} onEdit={() => onEditImage(1)} onUpdateCaption={(c) => onUpdateCaption(1, c)} />
+            <div className="absolute bottom-10 right-10 w-[60%] h-[60%] z-10 rotate-[4deg] shadow-2xl overflow-visible">
+               <div className="w-full h-full border-4 border-white shadow-xl rounded-2xl">
+                 <DropZone index={1} content={page.images[1]} onDrop={(p) => handleDrop(1, p)} onRemove={() => handleRemove(1)} onEdit={() => onEditImage(1)} onUpdateCaption={(c) => onUpdateCaption(1, c)} />
+               </div>
             </div>
           </div>
         );

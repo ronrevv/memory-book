@@ -1,4 +1,4 @@
-export type LayoutType = 'layout_hero' | 'layout_two' | 'layout_three' | 'layout_four' | 'layout_caption' | 'layout_tilted' | 'layout_collage';
+export type LayoutType = 'layout_hero' | 'layout_two' | 'layout_three' | 'layout_four' | 'layout_five' | 'layout_six' | 'layout_magazine' | 'layout_caption' | 'layout_tilted' | 'layout_collage';
 
 export interface TextStyle {
   fontFamily: string;
