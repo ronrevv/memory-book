@@ -40,7 +40,7 @@ const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, o
   return (
     <div
       ref={drop as any}
-      className={`relative group rounded-2xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl ${
+      className={`w-full h-full relative group rounded-2xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl ${
         isActive ? 'ring-4 ring-indigo-500 ring-offset-4 scale-[1.02] z-30 bg-indigo-50/80 shadow-indigo-200/50' : 
         (isDragging && !content) ? 'ring-2 ring-indigo-300 ring-dashed border-none bg-indigo-50/30' : 'ring-0'
       } ${!content ? 'bg-gradient-to-br from-gray-50/50 to-gray-100/50 border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:scale-[1.01] transition-all cursor-pointer' : 'bg-gray-200'}`}
