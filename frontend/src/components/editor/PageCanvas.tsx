@@ -21,14 +21,19 @@ interface DropZoneProps {
 }
 
 const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, onEdit, onUpdateCaption }) => {
-  const [{ isOver, canDrop }, drop] = useDrop(() => ({
+  const [{ isOver, canDrop, isDragging }, drop] = useDrop(() => ({
     accept: 'PHOTO',
-    drop: (item: { id: string; url: string }) => onDrop(item),
+    canDrop: (item) => true,
+    drop: (item: { id: string; url: string }) => {
+      console.log('Drop successful on slot', index, item);
+      onDrop(item);
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
       canDrop: !!monitor.canDrop(),
+      isDragging: !!monitor.getItem(),
     }),
-  }), [onDrop]);
+  }), [onDrop, index]);
 
   const isActive = isOver && canDrop;
 
@@ -36,7 +41,8 @@ const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, o
     <div
       ref={drop as any}
       className={`relative group rounded-2xl overflow-hidden transition-all duration-500 shadow-sm hover:shadow-2xl ${
-        isActive ? 'ring-4 ring-indigo-500 ring-offset-4 scale-[1.02] z-30 bg-indigo-50/80 shadow-indigo-200/50' : 'ring-0'
+        isActive ? 'ring-4 ring-indigo-500 ring-offset-4 scale-[1.02] z-30 bg-indigo-50/80 shadow-indigo-200/50' : 
+        (isDragging && !content) ? 'ring-2 ring-indigo-300 ring-dashed border-none bg-indigo-50/30' : 'ring-0'
       } ${!content ? 'bg-gradient-to-br from-gray-50/50 to-gray-100/50 border-2 border-dashed border-gray-300 hover:border-indigo-400 hover:scale-[1.01] transition-all cursor-pointer' : 'bg-gray-200'}`}
     >
       <div className={`absolute inset-0 bg-indigo-500/5 animate-pulse transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
@@ -226,12 +232,12 @@ const PageCanvas: React.FC<PageCanvasProps> = ({ page, onUpdatePage, onEditImage
         id="scrapbook-page-content"
         className="w-[500px] aspect-[4/5] bg-white rounded-r-3xl rounded-l-md shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden relative"
       >
-        {/* Spine shadow */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/[0.08] via-black/[0.03] to-transparent z-10" />
-        <div className="absolute left-3 top-0 bottom-0 w-[0.5px] bg-white/20 z-10" />
+        {/* Spine shadow - MUST be pointer-events-none to avoid blocking DnD */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/[0.08] via-black/[0.03] to-transparent z-10 pointer-events-none" />
+        <div className="absolute left-3 top-0 bottom-0 w-[0.5px] bg-white/20 z-10 pointer-events-none" />
         
         {/* Background texture simulator */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/paper.png')] z-0" />
         
         <AnimatePresence mode="wait">
           <motion.div
@@ -240,7 +246,7 @@ const PageCanvas: React.FC<PageCanvasProps> = ({ page, onUpdatePage, onEditImage
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.02 }}
             transition={{ duration: 0.3 }}
-            className="w-full h-full"
+            className="w-full h-full relative z-20"
           >
             {renderLayout()}
           </motion.div>

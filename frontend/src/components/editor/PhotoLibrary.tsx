@@ -15,7 +15,10 @@ interface PhotoLibraryProps {
 const DraggablePhoto: React.FC<{ photo: Photo }> = ({ photo }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'PHOTO',
-    item: { id: photo.id, url: photo.url },
+    item: () => {
+      console.log('Drag started for photo:', photo.id);
+      return { id: photo.id, url: photo.url };
+    },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
