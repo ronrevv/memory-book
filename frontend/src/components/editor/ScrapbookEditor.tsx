@@ -10,7 +10,7 @@ import ThumbnailStrip from './ThumbnailStrip';
 import ImageEditor from './ImageEditor';
 import PreviewMode from './PreviewMode';
 import { exportToJSON, exportToPDF } from '../../utils/exportUtils';
-import { Scrapbook, Page, LayoutType, ImageBlock } from '../../app/editor/types';
+import { Scrapbook, Page, LayoutType, ImageBlock, Sticker } from '../../app/editor/types';
 
 interface Photo {
   id: string;
@@ -117,6 +117,43 @@ const ScrapbookEditor: React.FC = () => {
     setScrapbook({ ...scrapbook, pages: newPages });
   };
 
+  const addSticker = (sticker: Omit<Sticker, 'id'>) => {
+    const newPages = [...scrapbook.pages];
+    const page = newPages[currentPageIndex];
+    const newSticker: Sticker = {
+      ...sticker,
+      id: Math.random().toString(36).substr(2, 9),
+    };
+    page.stickers = [...(page.stickers || []), newSticker];
+    setScrapbook({ ...scrapbook, pages: newPages });
+  };
+
+  const updateSticker = (stickerId: string, updates: Partial<Sticker>) => {
+    const newPages = [...scrapbook.pages];
+    const page = newPages[currentPageIndex];
+    if (!page.stickers) return;
+    page.stickers = page.stickers.map(s => s.id === stickerId ? { ...s, ...updates } : s);
+    setScrapbook({ ...scrapbook, pages: newPages });
+  };
+
+  const removeSticker = (stickerId: string) => {
+    const newPages = [...scrapbook.pages];
+    const page = newPages[currentPageIndex];
+    if (!page.stickers) return;
+    page.stickers = page.stickers.filter(s => s.id !== stickerId);
+    setScrapbook({ ...scrapbook, pages: newPages });
+  };
+
+  const updateBackground = (texture: Page['backgroundTexture'], color?: string) => {
+    const newPages = [...scrapbook.pages];
+    newPages[currentPageIndex] = {
+      ...newPages[currentPageIndex],
+      backgroundTexture: texture,
+      backgroundColor: color || newPages[currentPageIndex].backgroundColor,
+    };
+    setScrapbook({ ...scrapbook, pages: newPages });
+  };
+
   // Removed early return to keep canvas mounted for background tasks (like export)
 
   return (
@@ -164,6 +201,9 @@ const ScrapbookEditor: React.FC = () => {
                   setScrapbook({ ...scrapbook, pages: newPages });
                 }
               }}
+              onAddSticker={addSticker}
+              onUpdateSticker={updateSticker}
+              onRemoveSticker={removeSticker}
             />
             
             <ThumbnailStrip 
@@ -180,6 +220,8 @@ const ScrapbookEditor: React.FC = () => {
           <SettingsPanel 
             currentLayout={currentPage.layout}
             onLayoutChange={updatePageLayout}
+            currentBackground={currentPage.backgroundTexture || 'none'}
+            onBackgroundChange={updateBackground}
           />
         </div>
       </div>

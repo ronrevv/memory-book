@@ -26,11 +26,22 @@ export interface ImageBlock {
   };
 }
 
+export interface Sticker {
+  id: string;
+  src: string;
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
+}
+
 export interface Page {
   id: string;
   layout: LayoutType;
   images: (ImageBlock | null)[];
-  background?: string;
+  stickers?: Sticker[];
+  backgroundTexture?: 'none' | 'paper' | 'wood' | 'linen' | 'floral';
+  backgroundColor?: string;
 }
 
 export interface Scrapbook {

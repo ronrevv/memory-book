@@ -1,14 +1,17 @@
 import React from 'react';
-import { useDrop } from 'react-dnd';
+import { useDrop, useDrag } from 'react-dnd';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Page, ImageBlock } from '../../app/editor/types';
-import { Plus, Trash2, Maximize2, Edit3 } from 'lucide-react';
+import { Page, ImageBlock, Sticker } from '../../app/editor/types';
+import { Plus, Trash2, Maximize2, Edit3, X } from 'lucide-react';
 
 interface PageCanvasProps {
   page: Page;
   onUpdatePage: (updatedPage: Page) => void;
   onEditImage: (index: number) => void;
   onUpdateCaption: (index: number, caption: string) => void;
+  onAddSticker?: (sticker: Omit<Sticker, 'id'>) => void;
+  onUpdateSticker?: (id: string, updates: Partial<Sticker>) => void;
+  onRemoveSticker?: (id: string) => void;
 }
 
 interface DropZoneProps {
@@ -94,8 +97,80 @@ const DropZone: React.FC<DropZoneProps> = ({ index, content, onDrop, onRemove, o
   );
 };
 
-const PageCanvas: React.FC<PageCanvasProps> = ({ page, onUpdatePage, onEditImage, onUpdateCaption }) => {
+const StickerElement: React.FC<{ sticker: Sticker; onUpdate: (updates: Partial<Sticker>) => void; onRemove: () => void }> = ({ sticker, onUpdate, onRemove }) => {
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'MOVE_STICKER',
+    item: { id: sticker.id, type: 'MOVE_STICKER' },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }), [sticker.id]);
+
+  return (
+    <motion.div
+      ref={drag as any}
+      style={{
+        position: 'absolute',
+        left: `${sticker.x}%`,
+        top: `${sticker.y}%`,
+        transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg) scale(${sticker.scale})`,
+        width: 80,
+        height: 80,
+        zIndex: 50,
+      }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: isDragging ? 0.5 : 1, scale: sticker.scale }}
+      className="group cursor-move"
+    >
+      <img src={sticker.src} className="w-full h-full object-contain drop-shadow-lg" alt="" />
+      <button 
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg hover:bg-red-600 scale-0 group-hover:scale-100 transition-transform"
+      >
+        <X size={12} />
+      </button>
+    </motion.div>
+  );
+};
+
+const PageCanvas: React.FC<PageCanvasProps> = ({ 
+  page, 
+  onUpdatePage, 
+  onEditImage, 
+  onUpdateCaption,
+  onAddSticker,
+  onUpdateSticker,
+  onRemoveSticker
+}) => {
+  const [{ isOverSticker }, drop] = useDrop(() => ({
+    accept: ['STICKER', 'MOVE_STICKER'],
+    drop: (item: any, monitor: any) => {
+      const offset = monitor.getClientOffset();
+      const element = document.getElementById('scrapbook-page-content');
+      if (!offset || !element) return;
+
+      const rect = element.getBoundingClientRect();
+      const x = ((offset.x - rect.left) / rect.width) * 100;
+      const y = ((offset.y - rect.top) / rect.height) * 100;
+
+      if (item.type === 'STICKER') {
+        onAddSticker?.({
+          src: item.src,
+          x,
+          y,
+          rotation: Math.random() * 20 - 10,
+          scale: 1,
+        });
+      } else if (item.type === 'MOVE_STICKER') {
+        onUpdateSticker?.(item.id, { x, y });
+      }
+    },
+    collect: (monitor) => ({
+      isOverSticker: !!monitor.isOver(),
+    }),
+  }), [onAddSticker, onUpdateSticker]);
   const handleDrop = (index: number, photo: { id: string; url: string }) => {
+    // ... logic moved or updated if needed but keeping it consistent with images
     const newImages = [...page.images];
     newImages[index] = {
       id: Math.random().toString(36).substr(2, 9),
@@ -230,14 +305,41 @@ const PageCanvas: React.FC<PageCanvasProps> = ({ page, onUpdatePage, onEditImage
       
       <div
         id="scrapbook-page-content"
-        className="w-[500px] aspect-[4/5] bg-white rounded-r-3xl rounded-l-md shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden relative"
+        ref={drop as any}
+        className={`w-[500px] aspect-[4/5] bg-white rounded-r-3xl rounded-l-md shadow-[0_30px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden relative transition-colors duration-500 ${
+          page.backgroundTexture === 'paper' ? 'bg-[#fdfcf9]' :
+          page.backgroundTexture === 'linen' ? 'bg-[#f4f4f4]' :
+          page.backgroundTexture === 'wood' ? 'bg-[#e5d5c5]' :
+          page.backgroundTexture === 'floral' ? 'bg-[#fffafa]' : 'bg-white'
+        }`}
       >
         {/* Spine shadow - MUST be pointer-events-none to avoid blocking DnD */}
         <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/[0.08] via-black/[0.03] to-transparent z-10 pointer-events-none" />
         <div className="absolute left-3 top-0 bottom-0 w-[0.5px] bg-white/20 z-10 pointer-events-none" />
         
         {/* Background texture simulator */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/paper.png')] z-0" />
+        <div className={`absolute inset-0 pointer-events-none mix-blend-multiply z-0 opacity-40 transition-opacity duration-700 ${page.backgroundTexture ? 'opacity-100' : 'opacity-0'}`}>
+          {page.backgroundTexture === 'paper' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper.png')]" />}
+          {page.backgroundTexture === 'linen' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/linen.png')]" />}
+          {page.backgroundTexture === 'wood' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-60" />}
+          {page.backgroundTexture === 'floral' && <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/double-bubble.png')] opacity-30" />}
+          
+          {/* Default subtle grain */}
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-diamond.png')] opacity-10" />
+        </div>
+        
+        {/* Stickers Layer */}
+        <div className="absolute inset-0 z-40 pointer-events-none">
+          {page.stickers?.map((sticker) => (
+            <div key={sticker.id} className="pointer-events-auto">
+              <StickerElement 
+                sticker={sticker} 
+                onUpdate={(updates) => onUpdateSticker?.(sticker.id, updates)}
+                onRemove={() => onRemoveSticker?.(sticker.id)}
+              />
+            </div>
+          ))}
+        </div>
         
         <AnimatePresence mode="wait">
           <motion.div

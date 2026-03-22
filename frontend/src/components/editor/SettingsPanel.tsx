@@ -5,6 +5,8 @@ import { Layout, Grid, Columns, Square, AlignLeft, Type, Palette } from 'lucide-
 interface SettingsPanelProps {
   currentLayout: LayoutType;
   onLayoutChange: (layout: LayoutType) => void;
+  currentBackground: 'none' | 'paper' | 'wood' | 'linen' | 'floral';
+  onBackgroundChange: (texture: 'none' | 'paper' | 'wood' | 'linen' | 'floral') => void;
 }
 
 const layouts: { id: LayoutType; label: string; icon: React.ReactNode }[] = [
@@ -20,7 +22,12 @@ const layouts: { id: LayoutType; label: string; icon: React.ReactNode }[] = [
   { id: 'layout_collage', label: 'Artistic Collage', icon: <Columns size={20} className="rotate-3" /> },
 ];
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentLayout, onLayoutChange }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  currentLayout, 
+  onLayoutChange,
+  currentBackground,
+  onBackgroundChange
+}) => {
   return (
     <aside className="w-72 bg-white border-l border-gray-200 flex flex-col z-20 shadow-[-4px_0_15px_rgba(0,0,0,0.02)]">
       <div className="p-6 border-b border-gray-50">
@@ -57,6 +64,38 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ currentLayout, onLayoutCh
           </div>
         </section>
 
+        <section className="pt-8 border-t border-gray-100">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Page Style</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'none', label: 'Clean White' },
+              { id: 'paper', label: 'Natural Paper' },
+              { id: 'linen', label: 'Fine Linen' },
+              { id: 'wood', label: 'Aged Wood' },
+              { id: 'floral', label: 'Subtle Floral' },
+            ].map((texture) => (
+              <button
+                key={texture.id}
+                onClick={() => onBackgroundChange(texture.id as any)}
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                  currentBackground === texture.id 
+                    ? 'border-indigo-600 bg-indigo-50/50' 
+                    : 'border-transparent bg-gray-50 hover:bg-gray-100'
+                }`}
+              >
+                <div className={`w-full aspect-video rounded-lg shadow-inner overflow-hidden flex items-center justify-center ${
+                  texture.id === 'paper' ? 'bg-[#f8f5f0]' :
+                  texture.id === 'linen' ? 'bg-[#f0f0f0]' :
+                  texture.id === 'wood' ? 'bg-[#e5d5c5]' :
+                  texture.id === 'floral' ? 'bg-[#fff5f5]' : 'bg-white'
+                }`}>
+                  <Palette size={14} className={currentBackground === texture.id ? 'text-indigo-600' : 'text-gray-300'} />
+                </div>
+                <span className="text-[10px] font-bold text-gray-600">{texture.label}</span>
+              </button>
+            ))}
+          </div>
+        </section>
         <section className="pt-8 border-t border-gray-100">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Text Styling</h3>
           <div className="space-y-4">
