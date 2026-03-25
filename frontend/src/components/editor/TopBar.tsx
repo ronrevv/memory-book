@@ -1,6 +1,6 @@
 import React from 'react';
-import { Play, Download, Save, Share2 } from 'lucide-react';
-
+import { Play, Download, Save, Share2, Camera } from 'lucide-react';
+import Link from 'next/link';
 interface TopBarProps {
   title: string;
   onPreview: () => void;
@@ -25,6 +25,14 @@ const TopBar: React.FC<TopBarProps> = ({ title, onPreview, onExportJSON, onExpor
       </div>
 
       <div className="flex items-center gap-2">
+        <Link 
+          href="/photobooth"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-fuchsia-600 hover:bg-fuchsia-50 rounded-xl transition-all border border-fuchsia-100 shadow-sm animate-pulse hover:animate-none"
+        >
+          <Camera size={16} />
+          Photo Booth
+        </Link>
+        <div className="w-px h-6 bg-gray-200 mx-2" />
         <button 
           onClick={onPreview}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-xl transition-all"

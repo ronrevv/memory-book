@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -39,6 +39,52 @@ const ScrapbookEditor: React.FC = () => {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [editingImage, setEditingImage] = useState<{ pageIndex: number; imageIndex: number } | null>(null);
+
+  // Check for Photo Booth imports
+  useEffect(() => {
+    const pendingStrip = localStorage.getItem('pending_booth_strip');
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldAutoLayout = urlParams.get('autoLayout') === 'true';
+
+    if (pendingStrip) {
+      try {
+        const stripPhotos = JSON.parse(pendingStrip) as string[];
+        const newPhotoObjects = stripPhotos.map(url => ({
+          id: `booth-${Math.random().toString(36).substr(2, 5)}`,
+          url
+        }));
+
+        // Add to library
+        setPhotos(prev => [...newPhotoObjects, ...prev]);
+
+        if (shouldAutoLayout) {
+          setScrapbook(prev => {
+            const newIndex = prev.pages.length;
+            const newPage: Page = {
+              id: Math.random().toString(36).substr(2, 9),
+              layout: 'layout_four',
+              images: newPhotoObjects.map(p => ({
+                id: Math.random().toString(36).substr(2, 9),
+                src: p.url,
+                caption: 'Booth Session ✨'
+              }))
+            };
+            setCurrentPageIndex(newIndex);
+            return {
+              ...prev,
+              pages: [...prev.pages, newPage]
+            };
+          });
+        }
+
+        localStorage.removeItem('pending_booth_strip');
+        // Clean up URL
+        window.history.replaceState({}, '', '/editor');
+      } catch (err) {
+        console.error('Failed to import booth strip:', err);
+      }
+    }
+  }, []);
   const [photos, setPhotos] = useState<Photo[]>(SAMPLE_PHOTOS);
   const [isExporting, setIsExporting] = useState(false);
 
